@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Путеводитель по ресторанам Алматы</title>
+    <link rel="stylesheet" href="main.css">
+</head>
+
+<body class="fregat-font" style="background-color: #cce9f3;margin-left: 0%; margin-right: 0%;">
+  <div class="slider">
+    <div class="image-container">
+      <img src="Images/photo1.jpeg" alt="image1">
+      <img src="Images/photo2.webp" alt="image2">
+      <img src="Images/photo3.webp" alt="image3">
+      <img src="Images/photo4.jpeg" alt="image4">
+      <img src="Images/photo5.webp" alt="image5">
+      <img src="Images/photo6.webp" alt="image6">
+      <img src="Images/photo1.jpeg" alt="image7">
+      <img src="Images/photo2.webp" alt="image8">
+      <img src="Images/photo3.webp" alt="image9">
+      <img src="Images/photo4.jpeg" alt="image10">
+      <img src="Images/photo5.webp" alt="image11">
+      <img src="Images/photo6.webp" alt="image12">
+      <!-- Here we repeat the images -->
+      <img src="Images/photo1.jpeg" alt="image13">
+      <img src="Images/photo2.webp" alt="image14">
+      <img src="Images/photo3.webp" alt="image15">
+      <img src="Images/photo4.jpeg" alt="image16">
+      <img src="Images/photo5.webp" alt="image17">
+      <img src="Images/photo6.webp" alt="image18">
+    </div>
+  </div>
+  
+  <header>
+      <h1  class="page-title">Путеводитель по ресторанам Алматы</h1>
+  </header>
+
+  <section class="search eb-font">
+      <label for="searchInput">Введите запрос:</label>
+      <input type="text" id="searchInput" placeholder="Например, итальянская кухня">
+      <button id="searchButton">Искать</button>
+  </section>
+
+  <section class="restaurants-list eb-font">
+      <h2 class="kanit-font">Список ресторанов</h2>
+      <ul id="restaurantsList"></ul>
+  </section>
+
+  <div class="pagination fregat-font">
+      <button id="prevButton" disabled>Предыдущая страница</button>
+      <span id="currentPage">Страница 1</span>
+      <span>/</span>
+      <span id="totalPages">1</span>
+      <button id="nextButton" disabled>Следующая страница</button>
+  </div>
+
+  <footer>
+    <p>Made with support from 2GIS and Nfactorial School</p>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.js"></script>
+  <script type="module">
+        import { getRestaurantsInAlmaty } from './gis-api.js';
+
+        let currentPage = 1;
+        let totalResults = 0;
+        const pageSize = 10;
+
+        async function handleSearchButtonClick() {
+            currentPage = 1;
+            await updateRestaurantsList();
+        }
+
+        async function handlePrevButtonClick() {
+            if (currentPage > 1) {
+                currentPage--;
+                await updateRestaurantsList();
+            }
+        }
+
+        async function handleNextButtonClick() {
+            if (currentPage < Math.ceil(totalResults / pageSize)) {
+                currentPage++;
+                await updateRestaurantsList();
+            }
+        }
+
+        async function updateRestaurantsList() {
+    const query = document.getElementById("searchInput").value;
+    
+    const { items, total } = await getRestaurantsInAlmaty(query, currentPage);
+
+    
+    const restaurantsList = document.getElementById("restaurantsList");
+    restaurantsList.innerHTML = "";
+    items.forEach(restaurant => {
+        const li = document.createElement("li");
+        const searchLink = `https://2gis.kz/almaty/search/${encodeURIComponent(restaurant.name)}`;
+        const instagramLink = restaurant.instagram ? `<a href="${restaurant.instagram}" target="_blank">Instagram</a>` : 'Не указано';
+        li.innerHTML = `
+            <h3><a href="${searchLink}" target="_blank">${restaurant.name}</a></h3>
+            <p>Рейтинг: ${restaurant.rating}</p>
+            <p>Адрес: ${restaurant.address}</p>
+            <p>Инстаграм: ${instagramLink}</p>
+            ${restaurant.website ? `<p><a href="${restaurant.website}" target="_blank">Сайт</a></p>` : ''}
+        `;
+        restaurantsList.appendChild(li);
+    });
+
+        totalResults = total || 0;
+        const prevButton = document.getElementById("prevButton");
+        const nextButton = document.getElementById("nextButton");
+        prevButton.disabled = currentPage === 1;
+        nextButton.disabled = currentPage === Math.ceil(totalResults / pageSize);
+
+        const currentPageSpan = document.getElementById("currentPage");
+        const totalPagesSpan = document.getElementById("totalPages");
+        currentPageSpan.textContent = `Страница ${currentPage}`;
+        totalPagesSpan.textContent = Math.ceil(totalResults / pageSize);
+        }
+
+        document.getElementById("searchButton").addEventListener("click", handleSearchButtonClick);
+        document.getElementById("prevButton").addEventListener("click", handlePrevButtonClick);
+        document.getElementById("nextButton").addEventListener("click", handleNextButtonClick);
+
+    </script>
+</body>
+
+</html>
